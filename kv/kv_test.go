@@ -20,7 +20,7 @@ func TestMap(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	for w := 0; w < 10; w++ {
+	for w := 0; w < 40; w++ {
 		wg.Add(1)
 		go func() {
 			seed := uint64(time.Now().UnixNano())
@@ -32,9 +32,19 @@ func TestMap(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	for i, s := range m.shards {
-		fmt.Printf("shard %d len=%d\n", i, len(s.data))
+	avg := 0
+	for _, s := range m.shards {
+		avg += len(s.data)
+
+		// fmt.Printf("shard %d len=%d\n", i, )
 	}
+
+	avg = avg / len(m.shards)
+	for _, s := range m.shards {
+		assert.InDelta(avg, len(s.data), 10*(float64(avg)/100))
+	}
+
+	fmt.Println(avg)
 
 }
 
