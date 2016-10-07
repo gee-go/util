@@ -36,15 +36,15 @@ func TestMap(t *testing.T) {
 	}
 	wg.Wait()
 	avg := 0
-	for _, s := range m.shards {
-		avg += len(s.data)
+	for _, s := range m.PerShardStats() {
+		avg += s.size
 
 		// fmt.Printf("shard %d len=%d\n", i, )
 	}
 
 	avg = avg / len(m.shards)
-	for _, s := range m.shards {
-		assert.InDelta(avg, len(s.data), 10*(float64(avg)/100))
+	for _, s := range m.PerShardStats() {
+		assert.InDelta(avg, s.size, 10*(float64(avg)/100))
 	}
 	pp.Println(m.PerShardStats())
 	fmt.Println(avg)
