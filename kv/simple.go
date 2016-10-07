@@ -17,9 +17,9 @@ func (m *Simple) Set(k KEY_TYPE, v VAL_TYPE) {
 	m.mu.Unlock()
 }
 
-func (m *Simple) Get(k KEY_TYPE) VAL_TYPE {
+func (m *Simple) Get(k KEY_TYPE) (VAL_TYPE, bool) {
 	m.mu.Lock()
-	v := m.data[k]
+	v, found := m.data[k]
 	m.mu.Unlock()
-	return v
+	return v, found
 }

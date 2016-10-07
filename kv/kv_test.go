@@ -7,16 +7,19 @@ import (
 	"testing"
 	"time"
 
+	"github.com/k0kubun/pp"
 	"github.com/lazybeaver/xorshift"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMap(t *testing.T) {
-	m := NewSharded(256)
+	m := NewSharded(32)
 
 	m.Set(1, "abc")
 	assert := assert.New(t)
-	assert.Equal("abc", m.Get(1))
+	v, found := m.Get(1)
+	assert.True(found)
+	assert.Equal("abc", v)
 
 	var wg sync.WaitGroup
 
@@ -43,7 +46,7 @@ func TestMap(t *testing.T) {
 	for _, s := range m.shards {
 		assert.InDelta(avg, len(s.data), 10*(float64(avg)/100))
 	}
-
+	pp.Println(m.PerShardStats())
 	fmt.Println(avg)
 
 }
@@ -53,8 +56,8 @@ func BenchmarkMapParallel(b *testing.B) {
 		"simple": NewSimple(),
 	}
 
-	for i := uint(3); i <= 10; i++ {
-		sn := 1 << i
+	for _, sn := range []int{1, 64, 256} {
+
 		cases[strconv.Itoa(sn)+"-sharded"] = NewSharded(sn)
 	}
 
@@ -65,6 +68,27 @@ func BenchmarkMapParallel(b *testing.B) {
 				for pb.Next() {
 					m.Set(i%10000, "a")
 					i++
+				}
+			})
+		})
+	}
+
+	for name, m := range cases {
+		b.Run(name+"get", func(b *testing.B) {
+			b.RunParallel(func(pb *testing.PB) {
+				var i KEY_TYPE
+				var val VAL_TYPE
+				// var found bool
+				for pb.Next() {
+					v, found := m.Get(i % 10000)
+					if found {
+						val = v
+					}
+					i++
+				}
+
+				if val != "a" && val != "" {
+					b.Fail()
 				}
 			})
 		})
