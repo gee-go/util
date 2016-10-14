@@ -1,5 +1,11 @@
 package kv
 
+const (
+	offset32 uint32 = 2166136261
+	offset64        = 14695981039346656037
+	prime32         = 16777619
+	prime64         = 1099511628211
+)
 const numShards = 256
 
 // see http://arxiv.org/pdf/1406.2294.pdf
@@ -15,4 +21,42 @@ func jumpHash(k uint64, numBuckets int) int {
 	}
 
 	return int(b)
+}
+
+func javaSmear(hashCode uint64, numBuckets int) int {
+	hashCode = hashCode ^ (hashCode >> 32)
+	hashCode ^= (hashCode >> 20) ^ (hashCode >> 12)
+	hashCode = hashCode ^ (hashCode >> 7) ^ (hashCode >> 4)
+
+	return int(hashCode & (uint64(numBuckets) - 1))
+}
+
+func xorshiftMult64(x uint64, numBuckets int) int {
+	x ^= x >> 12 // a
+	x ^= x << 25 // b
+	x ^= x >> 27 // c
+	return int((x * 2685821657736338717) & (uint64(numBuckets) - 1))
+}
+
+func fnv64a(v uint64, numBuckets int) int {
+	h := offset32
+
+	h ^= uint32(byte(v))
+	h *= prime32
+	h ^= uint32(byte(v >> 8))
+	h *= prime32
+	h ^= uint32(byte(v >> 16))
+	h *= prime32
+	h ^= uint32(byte(v >> 24))
+	h *= prime32
+	h ^= uint32(byte(v >> 32))
+	h *= prime32
+	h ^= uint32(byte(v >> 40))
+	h *= prime32
+	h ^= uint32(byte(v >> 48))
+	h *= prime32
+	h ^= uint32(byte(v >> 56))
+	h *= prime32
+
+	return int(h) & (numBuckets - 1)
 }

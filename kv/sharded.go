@@ -14,7 +14,7 @@ type Sharded struct {
 }
 
 func (m *Sharded) hashKey(k KEY_TYPE) int {
-	return jumpHash(uint64(k), m.numShards)
+	return fnv64a(uint64(k), m.numShards)
 }
 
 func (m *Sharded) PerShardStats() []Stats {

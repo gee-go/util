@@ -1,13 +1,11 @@
 package kv
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/lazybeaver/xorshift"
 	"github.com/stretchr/testify/assert"
 )
@@ -46,8 +44,8 @@ func TestMap(t *testing.T) {
 	for _, s := range m.PerShardStats() {
 		assert.InDelta(avg, s.size, 10*(float64(avg)/100))
 	}
-	pp.Println(m.PerShardStats())
-	fmt.Println(avg)
+	// pp.Println(m.PerShardStats())
+	// fmt.Println(avg)
 
 }
 
@@ -55,9 +53,8 @@ func BenchmarkMapParallel(b *testing.B) {
 	cases := map[string]Map{
 		"simple": NewSimple(),
 	}
-
+	seed := uint64(time.Now().UnixNano())
 	for _, sn := range []int{1, 64, 256} {
-
 		cases[strconv.Itoa(sn)+"-sharded"] = NewSharded(sn)
 	}
 
@@ -65,8 +62,9 @@ func BenchmarkMapParallel(b *testing.B) {
 		b.Run(name, func(b *testing.B) {
 			b.RunParallel(func(pb *testing.PB) {
 				var i KEY_TYPE
+				rnd := xorshift.NewXorShift128Plus(seed)
 				for pb.Next() {
-					m.Set(i%10000, "a")
+					m.Set(KEY_TYPE(rnd.Next()), "a")
 					i++
 				}
 			})
@@ -78,6 +76,7 @@ func BenchmarkMapParallel(b *testing.B) {
 			b.RunParallel(func(pb *testing.PB) {
 				var i KEY_TYPE
 				var val VAL_TYPE
+				// rnd := xorshift.NewXorShift128Plus(seed)
 				// var found bool
 				for pb.Next() {
 					v, found := m.Get(i % 10000)
