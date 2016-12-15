@@ -22,6 +22,11 @@ func BenchmarkHash(b *testing.B) {
 			hash_val = fnv64a(uint64(i), 256)
 		}
 	})
+	b.Run("fnv64a2", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			hash_val = fnv64a2(uint64(i), 256)
+		}
+	})
 
 	b.Run("javaSmear", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

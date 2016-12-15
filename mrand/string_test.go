@@ -3,11 +3,11 @@ package mrand
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAlphaString(t *testing.T) {
-	a := require.New(t)
+	a := assert.New(t)
 
 	out := AlphaBytes(NewSource(), 40)
 	a.Len(out, 40)
